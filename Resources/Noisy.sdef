@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary xmlns:xi="http://www.w3.org/2001/XInclude">
+    <xi:include href="file:///System/Library/ScriptingDefinitions/CocoaStandard.sdef" xpointer="xpointer(/dictionary/suite)" />
+
+    <suite name="Noisy Suite" code="noiC" description="commands and classes for Noisy scripting.">
+    	<enumeration name="NoiseType" code="Ntyp">
+    		<enumerator name="none" code="Nnon">
+    			<cocoa name="None"/>
+    		</enumerator>
+    		<enumerator name="white" code="Nwht">
+    			<cocoa name="White"/>
+    		</enumerator>
+    		<enumerator name="pink" code="Npnk">
+    			<cocoa name="Pink"/>
+    		</enumerator>
+    	</enumeration>
+
+    	<class name="application" code="capp" description="Noisy application." inherits="NSCoreSuite.NSApplication">
+    		<cocoa class="NSApplication" />
+
+        	<property name="noise type" code="NNty" type="NoiseType" access="rw" description="The type of noise to play.">
+        		<cocoa key="scriptNoiseType"/>
+        	</property>
+        	<property name="noise volume" code="NNvo" type="integer" access="rw" description="The volume of the noise.">
+        		<cocoa key="scriptVolume"/>
+        	</property>
+        </class>
+    </suite>
+</dictionary>
