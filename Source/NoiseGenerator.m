@@ -39,8 +39,6 @@
 #import "NoiseGenerator.h"
 #import <CoreAudio/AudioHardware.h>
 
-#define kSamplesPerBuffer    (8*1024)
-
 
 @interface NoiseGenerator (Internal)
 - (void)initRandomEnv:(long)numRows;
@@ -48,17 +46,23 @@
 - (void)destroyAudio;
 - (void)startAudio;
 - (void)stopAudio;
-- (OSStatus)processAudioBufferList:(AudioBufferList *)bufferList;
+- (void)_processBuffer:(AudioQueueBufferRef)buffer;
 - (OSStatus)defaultOutputDeviceChanged;
-- (unsigned long) randomNumber;
 @end
 
 
-static OSStatus sWaveIOProc( AudioDeviceID inDevice, const AudioTimeStamp *ts, const AudioBufferList *inInputData,
-    const AudioTimeStamp *inInputTime, AudioBufferList *outOutputData, const AudioTimeStamp *inOutputTime, void *inContext )
+static unsigned long sGetNextRandomNumber()
 {
-    NoiseGenerator *generator = (NoiseGenerator *)inContext;
-    return [generator processAudioBufferList:outOutputData];
+	static unsigned long randSeed = 22222;  /* Change this for different random sequences. */
+	randSeed = (randSeed * 196314165) + 907633515;
+	return randSeed;
+}
+
+
+static void sAudioQueueOutputCallback(void *inUserData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer)
+{
+    NoiseGenerator *generator = (NoiseGenerator *)inUserData;
+    [generator _processBuffer:inBuffer];
 }
 
 
@@ -73,14 +77,9 @@ static OSStatus sDefaultOutputDeviceChanged(AudioHardwarePropertyID inPropertyID
 
 - (id) init
 {
-    [super init];
-
-    [self initRandomEnv:5];
-    [self createAudio];
-    
-    _devRandom = fopen("/dev/random", "r");
-
-    AudioHardwareAddPropertyListener(kAudioHardwarePropertyDefaultOutputDevice, sDefaultOutputDeviceChanged, self);
+    if (self = [super init]) {
+        [self initRandomEnv:5];
+    }
 
     return self;
 }
@@ -88,171 +87,138 @@ static OSStatus sDefaultOutputDeviceChanged(AudioHardwarePropertyID inPropertyID
 
 - (void)dealloc
 {
-    fclose(_devRandom);
-
     [self stopAudio];
-    [self destroyAudio];
-
-    AudioHardwareRemovePropertyListener(kAudioHardwarePropertyDefaultOutputDevice, sDefaultOutputDeviceChanged);
-
     [super dealloc];    
 }
 
 
 - (void)initRandomEnv:(long)numRows
 {
-    int    index;
-    long    pmax;
-    
     _pinkIndex = 0;
     _pinkIndexMask = (1 << numRows) - 1;
     _type = NoNoiseType;
     _volume = 0.33;
     
     // Calculate max possible signed random value. extra 1 for white noise always added
-    pmax = (numRows + 1) * (1 << (kPinkRandomBits-1));
+    long pmax = (numRows + 1) * (1 << (kPinkRandomBits-1));
     _pinkScalar = 1.0f / pmax;
     
     // Initialize rows
-    for( index = 0; index < numRows; index++ )
+    int index;
+    for (index = 0; index < numRows; index++) {
         _pinkRows[index] = 0;
+    }
+
     _pinkRunningSum = 0;
-}
-
-
-- (void) createAudio
-{
-    OSStatus    status;
-    UInt32      theSize;
-    UInt32      bufferByteCount;
-
-    theSize = sizeof(_outputDevID);
-    status = AudioHardwareGetProperty( kAudioHardwarePropertyDefaultOutputDevice, &theSize, &_outputDevID );
-    if( status ){ NSLog(@"NoiseGenerator::AudioHardwareGetProperty status %d", status ); return; }
-    
-    theSize = sizeof(bufferByteCount);
-    bufferByteCount = kSamplesPerBuffer * sizeof(float);
-    status = AudioDeviceSetProperty( _outputDevID, NULL, 0, NO, kAudioDevicePropertyBufferSize, theSize, &bufferByteCount );
-    if( status ){ NSLog(@"NoiseGenerator::AudioDeviceSetProperty setting buffer size status %d", status); return; }
-
-    status = AudioDeviceCreateIOProcID( _outputDevID, sWaveIOProc, self, &_outputProcID );
-    if( status ){ NSLog(@"NoiseGenerator::AudioDeviceCreateIOProcID status %d", status ); return; }
-}
-
-
-- (void) destroyAudio
-{
-    AudioDeviceDestroyIOProcID(_outputDevID, _outputProcID);
-    _outputProcID = 0;
 }
 
 
 - (void) startAudio
 {
-    OSStatus    status;
-    
-    status = AudioDeviceStart( _outputDevID, sWaveIOProc );
-    if( status ) NSLog(@"NoiseGenerator::AudioDeviceStart status %d", status );
+    if (!_isPlaying) {
+        AudioStreamBasicDescription description;
+
+        description.mSampleRate       = 44100;
+        description.mFormatID         = kAudioFormatLinearPCM; 
+        description.mFormatFlags      = kAudioFormatFlagIsFloat;
+        description.mBytesPerPacket   = sizeof(float);
+        description.mFramesPerPacket  = 1;
+        description.mBytesPerFrame    = sizeof(float);
+        description.mChannelsPerFrame = 1;
+        description.mBitsPerChannel   = sizeof(float) * 8;
+
+        _isPlaying = YES;
+        OSStatus err = AudioQueueNewOutput(&description, sAudioQueueOutputCallback, self, CFRunLoopGetCurrent(), kCFRunLoopCommonModes, 0, &_queue);
+        if (err) { NSLog(@"AudioQueueNewOutput returned %d", err); return; }
+
+        NSUInteger i;
+        for (i = 0; i < kNumberOfBuffers; i++) {
+            err = AudioQueueAllocateBuffer(_queue, kBytesPerBuffer, &_buffer[i]);
+            if (err) { NSLog(@"AudioQueueAllocateBuffer returned %d", err); return; }
+
+            [self _processBuffer:_buffer[i]];
+        }
+
+        err = AudioQueueStart(_queue, NULL);
+        if (err) { NSLog(@"AudioQueueStart returned %d", err); return; }
+    }
 }
 
 
 - (void) stopAudio
 {
-    OSStatus    status;
-    
-    status = AudioDeviceStop( _outputDevID, sWaveIOProc );
-    if( status ) NSLog(@"NoiseGenerator::AudioDeviceStop status %d", status );
+    if (_isPlaying) {
+        AudioQueueDispose(_queue, YES);
+        _isPlaying = NO;
+    }
 }
 
 
-- (OSStatus) processAudioBufferList:(AudioBufferList *)bufferList
+- (void) _processBuffer:(AudioQueueBufferRef)audioQueueBuffer
 {
-    float     *buffer = bufferList->mBuffers[0].mData;
-    UInt32     bufferSize = bufferList->mBuffers[0].mDataByteSize;
-    UInt32     numChannels = bufferList->mBuffers[0].mNumberChannels;
-    UInt32     bufferSamples = bufferSize / 4;
-    UInt32     bufferFrames = bufferSamples / numChannels;
-    UInt32     channel;
-    float      sample;
-    UInt32     sampleIndex;
+    UInt32  bufferSize   = audioQueueBuffer->mAudioDataBytesCapacity;
+    UInt32  bufferFrames = bufferSize / sizeof(float);
+    float  *buffer       = (float *)audioQueueBuffer->mAudioData;
+    float   sample;
+    UInt32  i;
     
     // White Noise
-    if( _type == WhiteNoiseType )
-    {
-        for( sampleIndex = 0; sampleIndex < bufferFrames; sampleIndex++ )
-        {
-            sample = ((long)[self randomNumber]) * (float)(1.0f / 0x7FFFFFFF) * _volume;
-            for( channel = 0; channel < numChannels; channel++ )
-                *buffer++ = sample;
+    if (_type == WhiteNoiseType) {
+        for (i = 0; i < bufferFrames; i++) {
+            sample = ((long)sGetNextRandomNumber()) * (float)(1.0f / 0x7FFFFFFF) * _volume;
+            *buffer++ = sample;
         }
-        return kAudioHardwareNoError;
-    }
-    
+
     // Pink Noise
-    for( sampleIndex = 0; sampleIndex < bufferFrames; sampleIndex++ )
-    {
-        long    newRandom;
-        long    sum;
-        
-        // Increment and mask index
-        _pinkIndex = (_pinkIndex + 1) & _pinkIndexMask;
-        
-        // If index is zero, don't update any random values
-        if( _pinkIndex )
-        {
-            int        numZeros = 0;
-            int        n = _pinkIndex;
+    } else {
+        for (i = 0; i < bufferFrames; i++) {
+            // Increment and mask index
+            _pinkIndex = (_pinkIndex + 1) & _pinkIndexMask;
             
-            // Determine how many trailing zeros in pinkIndex
-            // this will hang if n == 0 so test first
-            while( (n & 1) == 0 )
-            {
-                n = n >> 1;
-                numZeros++;
+            // If index is zero, don't update any random values
+            if (_pinkIndex) {
+                int numZeros = 0;
+                int n = _pinkIndex;
+                
+                // Determine how many trailing zeros in pinkIndex
+                // this will hang if n == 0 so test first
+                while((n & 1) == 0) {
+                    n = n >> 1;
+                    numZeros++;
+                }
+                
+                // Replace the indexed rows random value
+                // Subtract and add back to pinkRunningSum instead of adding all 
+                // the random values together. only one changes each time
+                _pinkRunningSum -= _pinkRows[numZeros];
+                long newRandom = ((long)sGetNextRandomNumber()) >> kPinkRandomShift;
+                _pinkRunningSum += newRandom;
+                _pinkRows[numZeros] = newRandom;
             }
             
-            // Replace the indexed rows random value
-            // Subtract and add back to pinkRunningSum instead of adding all 
-            // the random values together. only one changes each time
-            _pinkRunningSum -= _pinkRows[numZeros];
-            newRandom = ((long)[self randomNumber]) >> kPinkRandomShift;
-            _pinkRunningSum += newRandom;
-            _pinkRows[numZeros] = newRandom;
-        }
-        
-        // Add extra white noise value
-        newRandom = ((long)[self randomNumber]) >> kPinkRandomShift;
-        sum = _pinkRunningSum + newRandom;
-        
-        // Scale to range of -1.0 to 0.999 and factor in volume
-        sample = _pinkScalar * sum * _volume;
-        
-        // Write to all channels
-        for( channel = 0; channel < numChannels; channel++ )
+            // Add extra white noise value
+            long newRandom = ((long)sGetNextRandomNumber()) >> kPinkRandomShift;
+            long sum = _pinkRunningSum + newRandom;
+            
+            // Scale to range of -1.0 to 0.999 and factor in volume
+            sample = _pinkScalar * sum * _volume;
+
+            // Write to all channels
             *buffer++ = sample;
+        }
     }
-    
-    return kAudioHardwareNoError;
+
+    audioQueueBuffer->mAudioDataByteSize = (i * sizeof(float));
+    AudioQueueEnqueueBuffer(_queue, audioQueueBuffer, 0, NULL);
 }
 
 
 - (OSStatus) defaultOutputDeviceChanged
 {
     [self stopAudio];
-    [self destroyAudio];
-    [self createAudio];
-    
     if (_type != NoNoiseType) [self startAudio];
 
     return kAudioHardwareNoError;
-}
-
-
-- (unsigned long) randomNumber
-{
-    long randomNumber;
-    fread(&randomNumber, sizeof(long), 1, _devRandom);
-    return randomNumber;
 }
 
 

@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		550C200E1171C44E0098F573 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 550C200D1171C44E0098F573 /* AudioToolbox.framework */; };
 		552C29520E04A2CC0048FF6B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 552C294C0E04A2CC0048FF6B /* main.m */; };
 		552C29530E04A2CC0048FF6B /* NoiseGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 552C294E0E04A2CC0048FF6B /* NoiseGenerator.m */; };
 		552C29540E04A2CC0048FF6B /* NoisyApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 552C29510E04A2CC0048FF6B /* NoisyApp.m */; };
 		552C29650E04A3090048FF6B /* Noisy.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 552C29640E04A3090048FF6B /* Noisy.sdef */; };
 		552C29A30E04A4900048FF6B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 552C29A20E04A4900048FF6B /* Credits.rtf */; };
 		558406C70E10CEDD00EA991B /* Noisy.icns in Resources */ = {isa = PBXBuildFile; fileRef = 558406C60E10CEDD00EA991B /* Noisy.icns */; };
-		55BC13950DE0E3BD00775B7B /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55BC13940DE0E3BD00775B7B /* CoreAudio.framework */; };
 		8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -24,7 +24,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D1107260486CEB800E47090 /* Noisy */;
+			remoteGlobalIDString = 8D1107260486CEB800E47090;
 			remoteInfo = Noisy;
 		};
 /* End PBXContainerItemProxy section */
@@ -36,6 +36,7 @@
 		29B97319FDCFA39411CA2CEA /* MainMenu.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = MainMenu.nib; path = Resources/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		550C200D1171C44E0098F573 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		552C294C0E04A2CC0048FF6B /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Source/main.m; sourceTree = "<group>"; };
 		552C294D0E04A2CC0048FF6B /* NoiseGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoiseGenerator.h; path = Source/NoiseGenerator.h; sourceTree = "<group>"; };
 		552C294E0E04A2CC0048FF6B /* NoiseGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoiseGenerator.m; path = Source/NoiseGenerator.m; sourceTree = "<group>"; };
@@ -44,9 +45,8 @@
 		552C29510E04A2CC0048FF6B /* NoisyApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoisyApp.m; path = Source/NoisyApp.m; sourceTree = "<group>"; };
 		552C29640E04A3090048FF6B /* Noisy.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.sdef; name = Noisy.sdef; path = Resources/Noisy.sdef; sourceTree = "<group>"; };
 		552C29A20E04A4900048FF6B /* Credits.rtf */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = Credits.rtf; path = Resources/Credits.rtf; sourceTree = "<group>"; };
-		556725540E57EBB300327D19 /* Create Zip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Create Zip"; sourceTree = BUILT_PRODUCTS_DIR; };
 		558406C60E10CEDD00EA991B /* Noisy.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Noisy.icns; path = Resources/Noisy.icns; sourceTree = "<group>"; };
-		55BC13940DE0E3BD00775B7B /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
+		55C932170E57F13500AE58E3 /* Create Zip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Create Zip"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Resources/Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Noisy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Noisy.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -57,7 +57,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
-				55BC13950DE0E3BD00775B7B /* CoreAudio.framework in Frameworks */,
+				550C200E1171C44E0098F573 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,8 +80,8 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				55BC13940DE0E3BD00775B7B /* CoreAudio.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				550C200D1171C44E0098F573 /* AudioToolbox.framework */,
 			);
 			name = "Linked Frameworks";
 			sourceTree = "<group>";
@@ -100,7 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* Noisy.app */,
-				556725540E57EBB300327D19 /* Create Zip */,
+				55C932170E57F13500AE58E3 /* Create Zip */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -154,7 +154,7 @@
 			);
 			name = "Create Zip";
 			productName = "Create Zip";
-			productReference = 556725540E57EBB300327D19 /* Create Zip */;
+			productReference = 55C932170E57F13500AE58E3 /* Create Zip */;
 			productType = "com.apple.product-type.tool";
 		};
 		8D1107260486CEB800E47090 /* Noisy */ = {
@@ -299,7 +299,7 @@
 					AppKit,
 				);
 				PREBINDING = NO;
-				PRODUCT_NAME = "Create Zip";
+				PRODUCT_NAME = "";
 			};
 			name = Debug;
 		};
@@ -329,6 +329,7 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ONLY_ACTIVE_ARCH_PRE_XCODE_3_1)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
@@ -338,8 +339,10 @@
 				GCC_PREFIX_HEADER = Source/Noisy.pch;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
+				ONLY_ACTIVE_ARCH_PRE_XCODE_3_1 = "$(NATIVE_ARCH_ACTUAL)";
 				PRODUCT_NAME = Noisy;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				VALID_ARCHS = "ppc i386 x86_64";
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = YES;
 			};
@@ -348,8 +351,8 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -358,6 +361,7 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = Noisy;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.5.sdk";
+				VALID_ARCHS = "ppc i386 x86_64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

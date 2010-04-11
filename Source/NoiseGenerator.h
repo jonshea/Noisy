@@ -37,25 +37,28 @@
  
 
 #import <Cocoa/Cocoa.h>
-#import <CoreAudio/CoreAudio.h>
+#import <AudioToolbox/AudioToolbox.h>
 
 
 #define kPinkMaxRandomRows		32
 #define kPinkRandomBits			30
 #define kPinkRandomShift		((sizeof(long)*8)-kPinkRandomBits)
 
+#define kNumberOfBuffers     2
+#define kBytesPerBuffer      (2*8*1024)
+
 
 typedef enum {
     NoNoiseType,
     WhiteNoiseType,
-    PinkNoiseType
+    PinkNoiseType,
 } NoiseType;
 
 
 @interface NoiseGenerator : NSObject
 {
-	AudioDeviceID       _outputDevID;
-    AudioDeviceIOProcID _outputProcID;
+    AudioQueueRef        _queue;
+    AudioQueueBufferRef  _buffer[kNumberOfBuffers];
 	
     long            _pinkRows[kPinkMaxRandomRows];
 	long            _pinkRunningSum;	// Used to optimize summing of generators
@@ -65,8 +68,7 @@ typedef enum {
 
     NoiseType       _type;
 	double          _volume;
-    
-    FILE           *_devRandom;
+    BOOL            _isPlaying;
 }
 
 - (double) volume;

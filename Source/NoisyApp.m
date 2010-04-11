@@ -56,6 +56,8 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 
     [_generator setVolume: [[NSUserDefaults standardUserDefaults] doubleForKey:sNoiseVolumeKeyPath]];
     [_generator setType:   [[NSUserDefaults standardUserDefaults] integerForKey:sNoiseTypeKeyPath]];
+
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(handleWorkspaceWillSleepNotification:) name:NSWorkspaceWillSleepNotification object:NULL];
 }
 
 
@@ -63,6 +65,8 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 {
     [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:sNoiseVolumeKeyPath];
     [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:sNoiseTypeKeyPath];
+
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
 
     [_generator release];
 
@@ -83,6 +87,12 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 }
 
 
+- (void)handleWorkspaceWillSleepNotification:(NSNotification *)notification
+{
+    [[NSUserDefaults standardUserDefaults] setInteger:NoNoiseType forKey:sNoiseTypeKeyPath];
+}
+
+
 #pragma mark -
 #pragma mark IBActions
 
@@ -92,11 +102,13 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
+
 - (IBAction) openAboutPinkNoise:(id)sender
 {
     NSURL *url = [NSURL URLWithString:@"http://en.wikipedia.org/wiki/Pink_Noise"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
+
 
 - (IBAction) openNoisyWebsite:(id)sender
 {
@@ -133,6 +145,7 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
     return [[[NSNumber alloc] initWithUnsignedInteger:scriptType] autorelease];
 }
 
+
 - (void) setScriptNoiseType:(id)scriptTypeAsNumber
 {
     OSType scriptType = [scriptTypeAsNumber unsignedIntegerValue];
@@ -144,6 +157,8 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
         type = PinkNoiseType;
     } else if (scriptType == 'Nwht') {
         type = WhiteNoiseType;
+    } else {
+        type = NoNoiseType;
     }
 
     [[NSUserDefaults standardUserDefaults] setInteger:type forKey:sNoiseTypeKeyPath];
