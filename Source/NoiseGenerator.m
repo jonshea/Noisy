@@ -1,5 +1,6 @@
 /*
  * Modifications to original file:
+ *     Copyright (c) 2010, Jon Shea <http:jonshea.com>
  *     Copyright (c) 2008, Noisy Developers
  *     All rights reserved.
  *
@@ -165,12 +166,15 @@ static OSStatus sDefaultOutputDeviceChanged(AudioHardwarePropertyID inPropertyID
     // White Noise
     if (_type == WhiteNoiseType) {
         for (i = 0; i < bufferFrames; i++) {
-            sample = ((long)sGetNextRandomNumber()) * (float)(1.0f / 0x7FFFFFFF) * _volume;
+            
+            sample = ((long)sGetNextRandomNumber()) * (float)(1.0f / LONG_MAX) * _volume;
             *buffer++ = sample;
         }
 
     // Pink Noise
-    } else {
+    } 
+    
+    else if (_type == PinkNoiseType) {
         for (i = 0; i < bufferFrames; i++) {
             // Increment and mask index
             _pinkIndex = (_pinkIndex + 1) & _pinkIndexMask;
@@ -207,6 +211,31 @@ static OSStatus sDefaultOutputDeviceChanged(AudioHardwarePropertyID inPropertyID
             *buffer++ = sample;
         }
     }
+    else if (_type == BrownNoiseType) {
+        // Brownian noise is defined as integral of the white noise signal. In order words,
+        // the Brownian noise signal is a random walk. Unfortunately, the random walk has an
+        // unbound amplitude, and the amplitude of our output has to be bound by +- 1.0 .
+        // I have addressed this issue by 'nudging' _brown_ (the value of the integral of the white noise)
+        // back towards zero after each step by subtracting brown/32 from the running total.
+        
+        // This will doubtless affect the spectral power density of the output, but not by enough that I
+        // notice or care. If anyone has a better idea, I would be happen to implement it.
+        double brown = 0.0;
+        for (i = 0; i < bufferFrames; i++) {
+            double white = ((long)sGetNextRandomNumber()) * (double)(1.0f / LONG_MAX);
+            brown += white;
+
+            // Nudge the random walk back towards zero. Brown is bounded by +- 32.
+            // In practice, brown will rarely stray past +- 16.
+            brown -= brown * 0.03125; // brown / 32.0 
+            
+            // Since brown will be in the range +-16, we will scale it down to +- by multiplying
+            // by 0.06250 (divide by 16).
+            sample = (float)brown * 0.06250 * _volume; 
+
+            *buffer++ = sample;
+        }
+    }
 
     audioQueueBuffer->mAudioDataByteSize = (i * sizeof(float));
     AudioQueueEnqueueBuffer(_queue, audioQueueBuffer, 0, NULL);
@@ -222,10 +251,17 @@ static OSStatus sDefaultOutputDeviceChanged(AudioHardwarePropertyID inPropertyID
 }
 
 
-- (void)setVolume:(double)volume
+
+- (void)setVolume:(double)newVolume
 {
-    // Set the volume along a parabolic curve
-    _volume = volume * volume;
+    if (newVolume < 0.001) {
+        [self stopAudio];
+    }
+    else if (_type != NoNoiseType && _volume < 0.001) {
+        [self startAudio];
+    }
+    
+    _volume = newVolume;
 }
 
 

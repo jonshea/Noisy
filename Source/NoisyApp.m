@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010, Jon Shea <http:jonshea.com>
  * Copyright (c) 2008, Noisy Developers
  * All rights reserved.
  *
@@ -30,17 +31,18 @@
 #import "NoiseGenerator.h"
 
 static NSString *sNoiseTypeKeyPath   = @"NoiseType";
+static NSString *sPreviousNoiseTypeKeyPath = @"PreviousNoiseType";
 static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
-
 
 @implementation NoisyApp
 
-+ (void) initialize
++ (void)initialize
 {
     NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
 
-    [defaults setObject:[NSNumber numberWithInteger:NoNoiseType] forKey:sNoiseTypeKeyPath];
-    [defaults setObject:[NSNumber numberWithDouble:0.5] forKey:sNoiseVolumeKeyPath];
+    [defaults setObject:[NSNumber numberWithInteger:BrownNoiseType] forKey:sNoiseTypeKeyPath];
+    [defaults setObject:[NSNumber numberWithInteger:BrownNoiseType] forKey:sNoiseTypeKeyPath];
+    [defaults setObject:[NSNumber numberWithDouble:0.2] forKey:sNoiseVolumeKeyPath];
 
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 }
@@ -49,23 +51,18 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 {
     _generator = [[NoiseGenerator alloc] init];
     
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        
-    [defaults addObserver:self forKeyPath:sNoiseTypeKeyPath   options:0 context:NULL];
-    [defaults addObserver:self forKeyPath:sNoiseVolumeKeyPath options:0 context:NULL];
-
-    [_generator setVolume: [[NSUserDefaults standardUserDefaults] doubleForKey:sNoiseVolumeKeyPath]];
-    [_generator setType:   [[NSUserDefaults standardUserDefaults] integerForKey:sNoiseTypeKeyPath]];
-
+    [self setVolume:[[NSUserDefaults standardUserDefaults] doubleForKey:sNoiseVolumeKeyPath]];
+    
+    //    int p = [[NSUserDefaults standardUserDefaults] integerForKey:sPreviousNoiseTypeKeyPath];
+    [self setNoiseType:[[NSUserDefaults standardUserDefaults] integerForKey:sNoiseTypeKeyPath]];
+    previousNoiseType = [[NSUserDefaults standardUserDefaults] integerForKey:sPreviousNoiseTypeKeyPath];
+    
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(handleWorkspaceWillSleepNotification:) name:NSWorkspaceWillSleepNotification object:NULL];
 }
 
 
-- (void) dealloc
+- (void)dealloc
 {
-    [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:sNoiseVolumeKeyPath];
-    [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:sNoiseTypeKeyPath];
-
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
 
     [_generator release];
@@ -73,56 +70,116 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
     [super dealloc];
 }
 
-
-- (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if ([keyPath isEqualToString:sNoiseTypeKeyPath]) {
-        NoiseType type = [[NSUserDefaults standardUserDefaults] integerForKey:sNoiseTypeKeyPath];
-        _generator.type = type;
-
-    } else if ([keyPath isEqualToString:sNoiseVolumeKeyPath]) {
-        double volume = [[NSUserDefaults standardUserDefaults] doubleForKey:sNoiseVolumeKeyPath];
-        _generator.volume = volume;
-    }
+- (double)volume {
+    return [_generator volume];
 }
 
+- (void)setVolume:(double)newVolume {
+    if (newVolume < sNoiseMinVolume) {
+        newVolume = sNoiseMinVolume;
+    }
+    else if (newVolume > sNoiseMaxVolume) {
+        newVolume = sNoiseMaxVolume;
+    }
+    
+    [[NSUserDefaults standardUserDefaults] setDouble:newVolume forKey:sNoiseVolumeKeyPath];
+    [_generator setVolume:newVolume];
+}
+
+- (int)noiseType {
+    return [_generator type];
+}
+
+- (void)setNoiseType:(int)newNoiseType {
+    // Save the previous noise type, unless the previous noise type was 'NoNoise'
+    if ([self noiseType] != NoNoiseType) {
+        previousNoiseType = [self noiseType];
+        [[NSUserDefaults standardUserDefaults] setInteger:previousNoiseType forKey:sPreviousNoiseTypeKeyPath];
+    }
+    
+    [[NSUserDefaults standardUserDefaults] setInteger:newNoiseType forKey:sNoiseTypeKeyPath];
+    [_generator setType:newNoiseType];
+}
+
+- (void)toggleMute {
+    if ([self noiseType] != NoNoiseType) {
+        [self setNoiseType:NoNoiseType];
+    }
+    else {
+        [self setNoiseType:previousNoiseType];
+    }
+}
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
+{
+    [oWindow makeKeyAndOrderFront:self];
+    return YES;
+}
 
 - (void)handleWorkspaceWillSleepNotification:(NSNotification *)notification
 {
     [[NSUserDefaults standardUserDefaults] setInteger:NoNoiseType forKey:sNoiseTypeKeyPath];
 }
 
+// Intercept events that correspond to keyboard commands
+- (void)sendEvent:(NSEvent *)anEvent 
+{
+    if ([anEvent type] == NSKeyDown) {
+        NSString *theKeys = [anEvent charactersIgnoringModifiers];
+        unichar keyChar = 0;        
+        if ([theKeys length] == 0) {
+            return;            // reject dead keys
+        }
+        
+        if ([theKeys length] == 1) {
+            keyChar = [theKeys characterAtIndex:0];
+            
+            // CommandanEventshift arrow will set the volume to max or min
+            if ([anEvent modifierFlags] & NSCommandKeyMask && [anEvent modifierFlags] & NSShiftKeyMask) {
+                if (keyChar == NSLeftArrowFunctionKey || keyChar == NSDownArrowFunctionKey) {
+                    [self setVolume:sNoiseMinVolume];
+                    return;
+                }
+                if (keyChar == NSRightArrowFunctionKey || keyChar == NSUpArrowFunctionKey) {
+                    [self setVolume:sNoiseMaxVolume];
+                    return;
+                }
+            }
+            
+            // Anything else with an arrow will nudge the volume up or down
+            if (keyChar == NSLeftArrowFunctionKey || keyChar == NSDownArrowFunctionKey) {
+                [self setVolume:[self volume] - sNoiseVolumeStepSize];
+                return;
+            }
+            if (keyChar == NSRightArrowFunctionKey || keyChar == NSUpArrowFunctionKey) {
+                [self setVolume:[self volume] + sNoiseVolumeStepSize];
+                return;
+            }
+            
+            //Spacebar toggles mute.
+            if ([anEvent keyCode] == 49) {
+                [self toggleMute];
+                return;
+            }
+        }
+    }
+    
+    [super sendEvent:anEvent];
+}
 
 #pragma mark -
 #pragma mark IBActions
 
-- (IBAction) openAboutWhiteNoise:(id)sender
+- (IBAction)openAboutNoiseColors:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://en.wikipedia.org/wiki/White_noise"];
+    NSURL *url = [NSURL URLWithString:@"http://en.wikipedia.org/wiki/Colors_of_noise"];
     [[NSWorkspace sharedWorkspace] openURL:url];
 }
 
 
-- (IBAction) openAboutPinkNoise:(id)sender
+- (IBAction)openNoisyWebsite:(id)sender
 {
-    NSURL *url = [NSURL URLWithString:@"http://en.wikipedia.org/wiki/Pink_Noise"];
+    NSURL *url = [NSURL URLWithString:@"http://github.com/jonshea/Noisy"];
     [[NSWorkspace sharedWorkspace] openURL:url];
-}
-
-
-- (IBAction) openNoisyWebsite:(id)sender
-{
-    NSURL *url = [NSURL URLWithString:@"http://code.google.com/p/noisy/"];
-    [[NSWorkspace sharedWorkspace] openURL:url];
-}
-
-
-#pragma mark -
-#pragma mark Delegate Methods
-
-- (void)windowWillClose:(NSNotification *)notification
-{
-    [NSApp terminate:self];
 }
 
 
@@ -146,7 +203,7 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 }
 
 
-- (void) setScriptNoiseType:(id)scriptTypeAsNumber
+- (void)setScriptNoiseType:(id)scriptTypeAsNumber
 {
     OSType scriptType = [scriptTypeAsNumber unsignedIntegerValue];
     NoiseType type;
@@ -165,7 +222,7 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 }
 
 
-- (id) scriptVolume
+- (id)scriptVolume
 {
     double volume = [[NSUserDefaults standardUserDefaults] doubleForKey:sNoiseVolumeKeyPath];
     NSInteger roundedVolume = round(volume * 100);
@@ -173,7 +230,7 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
 }
 
 
-- (void) setScriptVolume:(id)volumeAsNumber
+- (void)setScriptVolume:(id)volumeAsNumber
 {
     double volume = [volumeAsNumber doubleValue];
 

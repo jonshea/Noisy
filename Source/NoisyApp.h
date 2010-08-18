@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010, Jon Shea <http:jonshea.com>
  * Copyright (c) 2008, Noisy Developers
  * All rights reserved.
  *
@@ -28,15 +29,23 @@
  
 #import <Cocoa/Cocoa.h>
 
+@class NoisyWindow;
 @class NoiseGenerator;
 
 @interface NoisyApp : NSApplication {
 	IBOutlet NSWindow *oWindow;
-    NoiseGenerator  *_generator;
+    NoiseGenerator *_generator;
+    int previousNoiseType; // Saves the noise type during 'mute'
 }
 
-- (IBAction) openAboutWhiteNoise:(id)sender;
-- (IBAction) openAboutPinkNoise:(id)sender;
-- (IBAction) openNoisyWebsite:(id)sender;
+- (IBAction)openAboutNoiseColors:(id)sender;
+- (IBAction)openNoisyWebsite:(id)sender;
+
+- (double)volume;
+- (void)setVolume:(double)newVolume;
+- (int)noiseType;
+- (void)setNoiseType:(int)newNoiseType;
+
+- (void)toggleMute;
 
 @end

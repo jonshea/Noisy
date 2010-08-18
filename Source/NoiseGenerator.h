@@ -1,5 +1,6 @@
 /*
  * Modifications to original file:
+ *     Copyright (c) 2010, Jon Shea <http:jonshea.com>
  *     Copyright (c) 2008, Noisy Developers
  *     All rights reserved.
  *
@@ -47,11 +48,16 @@
 #define kNumberOfBuffers     2
 #define kBytesPerBuffer      (2*8*1024)
 
+static double const sNoiseMinVolume       = 0.0;
+static double const sNoiseMaxVolume       = 1.0;
+static double const sNoiseVolumeStepSize  = 0.02;
+
 
 typedef enum {
     NoNoiseType,
     WhiteNoiseType,
     PinkNoiseType,
+    BrownNoiseType,
 } NoiseType;
 
 
@@ -61,13 +67,13 @@ typedef enum {
     AudioQueueBufferRef  _buffer[kNumberOfBuffers];
 	
     long            _pinkRows[kPinkMaxRandomRows];
-	long            _pinkRunningSum;	// Used to optimize summing of generators
-	int             _pinkIndex;			// Incremented each sample
-	int             _pinkIndexMask;		// Index wrapped by &ing with this mask
-	float           _pinkScalar;		// Used to scale within range of -1.0 to 1.0
+    long            _pinkRunningSum;	// Used to optimize summing of generators
+    int             _pinkIndex;			// Incremented each sample
+    int             _pinkIndexMask;		// Index wrapped by &ing with this mask
+    float           _pinkScalar;		// Used to scale within range of -1.0 to 1.0
 
     NoiseType       _type;
-	double          _volume;
+    double          _volume;
     BOOL            _isPlaying;
 }
 

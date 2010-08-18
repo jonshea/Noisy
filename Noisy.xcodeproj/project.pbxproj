@@ -14,9 +14,9 @@
 		552C29650E04A3090048FF6B /* Noisy.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 552C29640E04A3090048FF6B /* Noisy.sdef */; };
 		552C29A30E04A4900048FF6B /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 552C29A20E04A4900048FF6B /* Credits.rtf */; };
 		558406C70E10CEDD00EA991B /* Noisy.icns in Resources */ = {isa = PBXBuildFile; fileRef = 558406C60E10CEDD00EA991B /* Noisy.icns */; };
-		8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		8D7FC7951213A76F00EB152C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8D7FC7931213A76F00EB152C /* MainMenu.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,7 +33,6 @@
 		089C165DFE840E0CC02AAC07 /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = Resources/English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
-		29B97319FDCFA39411CA2CEA /* MainMenu.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = MainMenu.nib; path = Resources/English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		550C200D1171C44E0098F573 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -49,6 +48,7 @@
 		55C932170E57F13500AE58E3 /* Create Zip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Create Zip"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Resources/Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Noisy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Noisy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D7FC7941213A76F00EB152C /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = Resources/English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,7 +72,6 @@
 				552C294D0E04A2CC0048FF6B /* NoiseGenerator.h */,
 				552C294E0E04A2CC0048FF6B /* NoiseGenerator.m */,
 				552C294F0E04A2CC0048FF6B /* Noisy.pch */,
-				552C294C0E04A2CC0048FF6B /* main.m */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -119,12 +118,13 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				552C294C0E04A2CC0048FF6B /* main.m */,
+				8D7FC7931213A76F00EB152C /* MainMenu.xib */,
 				558406C60E10CEDD00EA991B /* Noisy.icns */,
 				552C29A20E04A4900048FF6B /* Credits.rtf */,
 				552C29640E04A3090048FF6B /* Noisy.sdef */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
-				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -199,11 +199,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				552C29650E04A3090048FF6B /* Noisy.sdef in Resources */,
 				552C29A30E04A4900048FF6B /* Credits.rtf in Resources */,
 				558406C70E10CEDD00EA991B /* Noisy.icns in Resources */,
+				8D7FC7951213A76F00EB152C /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,12 +269,12 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		29B97318FDCFA39411CA2CEA /* MainMenu.nib */ = {
+		8D7FC7931213A76F00EB152C /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				29B97319FDCFA39411CA2CEA /* MainMenu.nib */,
+				8D7FC7941213A76F00EB152C /* English */,
 			);
-			name = MainMenu.nib;
+			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
