@@ -109,6 +109,12 @@ static NSString *sNoiseVolumeKeyPath = @"NoiseVolume";
         [self setNoiseType:previousNoiseType];
     }
 }
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
+    [oWindow setReleasedWhenClosed:NO];
+}
+
 - (BOOL)applicationShouldHandleReopen:(NSApplication *)theApplication hasVisibleWindows:(BOOL)flag
 {
     [oWindow makeKeyAndOrderFront:self];
